@@ -1,0 +1,14 @@
+package com.novastore.auth.dto;
+
+import javax.validation.constraints.Email;
+import javax.validation.constraints.NotBlank;
+import lombok.Data;
+
+@Data
+public class RegisterRequest {
+    @NotBlank private String firstName;
+    @NotBlank private String lastName;
+    @NotBlank @Email private String email;
+    @NotBlank private String password;
+    private String phone;
+}

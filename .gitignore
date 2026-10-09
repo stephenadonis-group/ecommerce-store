@@ -1,0 +1,25 @@
+# Build artifacts
+node_modules/
+dist/
+target/
+*.class
+*.jar
+
+# Env / secrets
+.env
+.env.*
+
+# Logs
+*.log
+logs/
+
+# OS / editor
+.DS_Store
+.idea/
+*.iml
+.vscode/
+
+# Tooling caches
+.vite/
+.superpowers/
+*.deb

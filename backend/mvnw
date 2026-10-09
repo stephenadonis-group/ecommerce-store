@@ -1,0 +1,56 @@
+#!/bin/sh
+# Maven Wrapper startup script for UN*X systems
+
+set -e
+
+# Find project base directory
+MAVEN_PROJECTBASEDIR="${MAVEN_BASEDIR:-$(cd "$(dirname "$0")" && pwd)}"
+export MAVEN_PROJECTBASEDIR
+
+# Maven wrapper jar location
+WRAPPER_JAR="$MAVEN_PROJECTBASEDIR/.mvn/wrapper/maven-wrapper.jar"
+WRAPPER_PROPERTIES="$MAVEN_PROJECTBASEDIR/.mvn/wrapper/maven-wrapper.properties"
+
+# Download maven-wrapper.jar if not present
+if [ ! -e "$WRAPPER_JAR" ]; then
+    if command -v wget > /dev/null; then
+        DOWNLOAD_URL=$(grep "wrapperUrl" "$WRAPPER_PROPERTIES" | cut -d'=' -f2-)
+        wget "$DOWNLOAD_URL" -O "$WRAPPER_JAR"
+    elif command -v curl > /dev/null; then
+        DOWNLOAD_URL=$(grep "wrapperUrl" "$WRAPPER_PROPERTIES" | cut -d'=' -f2-)
+        curl -o "$WRAPPER_JAR" "$DOWNLOAD_URL"
+    else
+        echo "Error: Neither wget nor curl found. Please install one." >&2
+        exit 1
+    fi
+fi
+
+# Read distributionUrl from properties
+if [ -e "$WRAPPER_PROPERTIES" ]; then
+    DISTRIBUTION_URL=$(grep "distributionUrl" "$WRAPPER_PROPERTIES" | cut -d'=' -f2-)
+else
+    echo "Error: Maven wrapper properties not found." >&2
+    exit 1
+fi
+
+# Check if mvn is already available
+if command -v mvn > /dev/null; then
+    exec mvn "$@"
+fi
+
+# Download and install Maven if not present
+MAVEN_HOME="$HOME/.m2/wrapper/dists/$(echo "$DISTRIBUTION_URL" | sed 's/.*\///' | sed 's/\.zip$//')"
+if [ ! -d "$MAVEN_HOME" ]; then
+    echo "Downloading Maven from $DISTRIBUTION_URL"
+    TEMP_DIR=$(mktemp -d)
+    if command -v wget > /dev/null; then
+        wget "$DISTRIBUTION_URL" -O "$TEMP_DIR/maven.zip"
+    elif command -v curl > /dev/null; then
+        curl -o "$TEMP_DIR/maven.zip" "$DISTRIBUTION_URL"
+    fi
+    unzip -q "$TEMP_DIR/maven.zip" -d "$TEMP_DIR"
+    mv "$TEMP_DIR"/apache-maven-* "$MAVEN_HOME"
+    rm -rf "$TEMP_DIR"
+fi
+
+exec "$MAVEN_HOME/bin/mvn" "$@"
