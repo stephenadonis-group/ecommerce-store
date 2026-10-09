@@ -153,7 +153,7 @@ docker images | grep novastore
 ```
 # 3. Configure environment variables
 
-# Create a .env file in the project root:
+## Create a .env file in the project root:
 
 MYSQL_ROOT_PASSWORD=your_root_password
 MYSQL_DATABASE=novastore
