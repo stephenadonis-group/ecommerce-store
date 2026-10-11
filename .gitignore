@@ -23,3 +23,10 @@ logs/
 .vite/
 .superpowers/
 *.deb
+
+# Helm / env secrets (never commit)
+**/values-secret.yaml
+**/values-secret-*.yaml
+.env
+.env.*
+!.env.example

@@ -1,0 +1,62 @@
+namespace: novastore
+createNamespace: true
+
+images:
+  backend: stephenadonis/novastore-backend:1.0
+  frontend: stephenadonis/novastore-frontend:1.0
+  mysql: mysql:8.0
+  pullPolicy: IfNotPresent
+
+# Override with -f values-secret.yaml. Do not commit real passwords.
+secrets:
+  mysqlRootPassword: 
+  mysqlUser: 
+  mysqlPassword: change-me-db
+  jwtSecret: ""
+
+
+imageCredentials:
+  create: true
+  name: regcred
+  registry: https://index.docker.io/v1/
+  username: stephenadonis
+  password: "YOUR_DOCKERHUB_TOKEN"
+  email: "your@email.com"
+
+imagePullSecrets:
+  - name: regcred
+mysql:
+  database: novastore
+  storage: 2Gi
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+backend:
+  replicas: 1
+  port: 8080
+  javaToolOptions: "-Xms128m -Xmx384m"
+  resources:
+    requests:
+      cpu: 200m
+      memory: 384Mi
+    limits:
+      cpu: 700m
+      memory: 640Mi
+
+frontend:
+  replicas: 1
+  port: 80
+  serviceType: NodePort
+  nodePort: 30080
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 128Mi

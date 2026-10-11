@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "novastore.labels" . | nindent 4 }}
+    app: backend
+spec:
+  replicas: {{ .Values.backend.replicas }}
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: backend
+          image: {{ .Values.images.backend }}
+          imagePullPolicy: {{ .Values.images.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.backend.port }}
+          env:
+            - name: DB_URL
+              value: "jdbc:mysql://mysql:3306/{{ .Values.mysql.database }}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC"
+            - name: DB_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-secret
+                  key: mysql-user
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-secret
+                  key: mysql-password
+            - name: JAVA_TOOL_OPTIONS
+              value: {{ .Values.backend.javaToolOptions | quote }}
+            {{- if .Values.secrets.jwtSecret }}
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-secret
+                  key: jwt-secret
+            {{- end }}
+          resources:
+            {{- toYaml .Values.backend.resources | nindent 12 }}
