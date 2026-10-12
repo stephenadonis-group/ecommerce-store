@@ -1,0 +1,164 @@
+
+name: NovaStore CI/CD — Docker Hub and Argo CD
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "backend/**"
+      - "frontend/**"
+      - "helm/novastore/**"
+      - ".github/workflows/ci.yaml"
+  pull_request:
+    paths:
+      - "backend/**"
+      - "frontend/**"
+      - "helm/novastore/**"
+      - ".github/workflows/ci.yaml"
+
+concurrency:
+  group: novastore-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build and scan ${{ matrix.service }}
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - service: backend
+            image: novastore-backend
+          - service: frontend
+            image: novastore-frontend
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Compute image tags
+        id: vars
+        shell: bash
+        run: |
+          echo "sha=${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build image for scanning
+        uses: docker/build-push-action@v6
+        with:
+          context: ./${{ matrix.service }}
+          file: ./${{ matrix.service }}/Dockerfile
+          push: false
+          load: true
+          tags: |
+            stephenadonis/${{ matrix.image }}:${{ steps.vars.outputs.sha }}
+          build-args: |
+            VITE_API_URL=${{ vars.VITE_API_URL }}
+          cache-from: type=gha,scope=${{ matrix.service }}
+          cache-to: type=gha,scope=${{ matrix.service }},mode=max
+
+      - name: Scan image with Trivy
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          scan-type: image
+          image-ref: stephenadonis/${{ matrix.image }}:${{ steps.vars.outputs.sha }}
+          format: table
+          exit-code: "1"
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          vuln-type: os,library
+
+      - name: Log in to Docker Hub
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Push image to Docker Hub
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: docker/build-push-action@v6
+        with:
+          context: ./${{ matrix.service }}
+          file: ./${{ matrix.service }}/Dockerfile
+          push: true
+          tags: |
+            stephenadonis/${{ matrix.image }}:${{ steps.vars.outputs.sha }}
+            stephenadonis/${{ matrix.image }}:latest
+          build-args: |
+            VITE_API_URL=${{ vars.VITE_API_URL }}
+          cache-from: type=gha,scope=${{ matrix.service }}
+
+  update-gitops:
+    name: Update Helm image tags
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          token: ${{ secrets.GITOPS_TOKEN || secrets.GITHUB_TOKEN }}
+
+      - name: Compute image tag
+        id: vars
+        shell: bash
+        run: |
+          echo "sha=${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+
+      - name: Install yq
+        run: |
+          sudo wget -q \
+            https://github.com/mikefarah/yq/releases/download/v4.44.3/yq_linux_amd64 \
+            -O /usr/local/bin/yq
+          sudo chmod +x /usr/local/bin/yq
+          yq --version
+
+      - name: Update Helm image references
+        env:
+          NEW_TAG: ${{ steps.vars.outputs.sha }}
+        run: |
+          set -euo pipefail
+
+          FILE="helm/novastore/values.yaml"
+
+          yq -i \
+            ".images.backend = \"stephenadonis/novastore-backend:${NEW_TAG}\"" \
+            "$FILE"
+
+          yq -i \
+            ".images.frontend = \"stephenadonis/novastore-frontend:${NEW_TAG}\"" \
+            "$FILE"
+
+          echo "Updated image references:"
+          yq '.images' "$FILE"
+
+      - name: Commit GitOps change
+        env:
+          NEW_TAG: ${{ steps.vars.outputs.sha }}
+        run: |
+          set -euo pipefail
+
+          git config user.name "novastore-ci[bot]"
+          git config user.email "novastore-ci[bot]@users.noreply.github.com"
+
+          if git diff --quiet -- helm/novastore/values.yaml; then
+            echo "No Helm image changes to commit."
+            exit 0
+          fi
+
+          git add helm/novastore/values.yaml
+          git commit -m "ci(gitops): update images to ${NEW_TAG} [skip ci]"
+          git push origin main
