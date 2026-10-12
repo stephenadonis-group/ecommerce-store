@@ -59,8 +59,6 @@ jobs:
           load: true
           tags: |
             stephenadonis/${{ matrix.image }}:${{ steps.vars.outputs.sha }}
-          build-args: |
-            VITE_API_URL=${{ vars.VITE_API_URL }}
           cache-from: type=gha,scope=${{ matrix.service }}
           cache-to: type=gha,scope=${{ matrix.service }},mode=max
 
@@ -92,8 +90,6 @@ jobs:
           tags: |
             stephenadonis/${{ matrix.image }}:${{ steps.vars.outputs.sha }}
             stephenadonis/${{ matrix.image }}:latest
-          build-args: |
-            VITE_API_URL=${{ vars.VITE_API_URL }}
           cache-from: type=gha,scope=${{ matrix.service }}
 
   update-gitops:
