@@ -1,20 +1,16 @@
 namespace: novastore
 createNamespace: true
-
 images:
-  backend: stephenadonis/novastore-backend:1.0
-  frontend: stephenadonis/novastore-frontend:1.0
+  backend: stephenadonis/novastore-backend:5b3adda
+  frontend: stephenadonis/novastore-frontend:5b3adda
   mysql: mysql:8.0
   pullPolicy: IfNotPresent
-
 # Override with -f values-secret.yaml. Do not commit real passwords.
 secrets:
-  mysqlRootPassword: 
-  mysqlUser: 
+  mysqlRootPassword:
+  mysqlUser:
   mysqlPassword: change-me-db
   jwtSecret: ""
-
-
 imageCredentials:
   create: true
   name: regcred
@@ -22,7 +18,6 @@ imageCredentials:
   username: stephenadonis
   password: "YOUR_DOCKERHUB_TOKEN"
   email: "your@email.com"
-
 imagePullSecrets:
   - name: regcred
 mysql:
@@ -35,7 +30,6 @@ mysql:
     limits:
       cpu: 500m
       memory: 512Mi
-
 backend:
   replicas: 1
   port: 8080
@@ -47,7 +41,6 @@ backend:
     limits:
       cpu: 700m
       memory: 640Mi
-
 frontend:
   replicas: 1
   port: 80
