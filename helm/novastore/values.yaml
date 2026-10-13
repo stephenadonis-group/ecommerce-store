@@ -1,8 +1,8 @@
 namespace: novastore
 createNamespace: true
 images:
-  backend: stephenadonis/novastore-backend:b027075
-  frontend: stephenadonis/novastore-frontend:b027075
+  backend: stephenadonis/novastore-backend:75d9f93
+  frontend: stephenadonis/novastore-frontend:75d9f93
   mysql: mysql:8.0
   pullPolicy: IfNotPresent
 # Override with -f values-secret.yaml. Do not commit real passwords.
