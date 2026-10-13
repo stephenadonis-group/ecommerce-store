@@ -34,11 +34,12 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                .antMatchers("/api/auth/register", "/api/auth/login").permitAll()
-                .antMatchers(HttpMethod.GET, "/api/products", "/api/products/**").permitAll()
-                .antMatchers(HttpMethod.GET, "/api/categories", "/api/categories/**").permitAll()
-                .anyRequest().authenticated()
-            )
+            .antMatchers("/api/auth/register", "/api/auth/login").permitAll()
+            .antMatchers(HttpMethod.GET, "/api/products", "/api/products/**").permitAll()
+            .antMatchers(HttpMethod.GET, "/api/categories", "/api/categories/**").permitAll()
+            .antMatchers("/actuator/health", "/actuator/prometheus").permitAll()
+            .anyRequest().authenticated()
+        )
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

@@ -117,17 +117,17 @@ supports guest cart/wishlist in localStorage, merged into the server account
 on login.
 
 
-# Docker compose set up
+## Docker compose set up
 
-## Prerequisites
+### Prerequisites
 - Docker Engine or Docker Desktop
 - Docker Compose
 
-# 1. Clone the repository
+### 1. Clone the repository
 - git clone <your-repository-url>
 - cd ecommerce-store
 
-# 2. Build Docker images and push to Dockerhub with Dockerfile 
+### 2. Build Docker images and push to Dockerhub with Dockerfile 
 ```
 - cd ~/ecommerce-store/backend
 docker build -t novastore-backend .
@@ -137,23 +137,23 @@ cd ~/ecommerce-store/frontend
 docker build -t novastore-frontend \
 --build-arg VITE_API_URL=http://localhost:8080 . # or save in env
 ``` 
-# Tag the images
+### Tag the images
 ```
 docker tag novastore-backend YOUR_DOCKERHUB_USERNAME/novastore-backend:latest
 docker tag novastore-frontend YOUR_DOCKERHUB_USERNAME/novastore-frontend:latest
 ```
-# Push the images
+### Push the images
 ```
 docker push YOUR_DOCKERHUB_USERNAME/novastore-backend:latest
 docker push YOUR_DOCKERHUB_USERNAME/novastore-frontend:latest
 ```
-# Confirm
+### Confirm
 ```
 docker images | grep novastore
 ```
-# 3. Configure environment variables
+## 3. Configure environment variables
 
-## Create a .env file in the project root:
+### Create a .env file in the project root:
 
 MYSQL_ROOT_PASSWORD=your_root_password
 MYSQL_DATABASE=novastore
@@ -162,12 +162,12 @@ MYSQL_PASSWORD=your_app_password
 
 Use strong passwords and never commit your .env file.
 
-# Run it!
+### Run it!
 ```Bash
 cd ~/ecommerce-store
 docker compose up -d
 ```
-# Check status
+### Check status
 ```Bash
 docker compose ps
 docker compose logs -f backend
