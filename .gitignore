@@ -27,6 +27,8 @@ logs/
 # Helm / env secrets (never commit)
 **/values-secret.yaml
 **/values-secret-*.yaml
+.helmignore
+
 .env
 .env.*
 !.env.example
