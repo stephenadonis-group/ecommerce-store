@@ -1,4 +1,4 @@
-name: NovaStore CI/CD — Docker Hub and Argo CD
+name: NovaStore CI/CD — Docker Hub and Argo CD securityScanning
 on:
   push:
     branches: [main]
